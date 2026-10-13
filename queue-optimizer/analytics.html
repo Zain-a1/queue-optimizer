@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueFlow - Analytics & Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <header class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold">QueueFlow <span class="text-xs bg-indigo-500 px-2 py-0.5 rounded-full">Analytics</span></h1>
+            <a href="staff.html" class="text-xs bg-indigo-700 px-3 py-2 rounded-lg">&larr; Staff Dashboard</a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <span class="text-xs font-semibold uppercase text-slate-400">Completed Tokens</span>
+                <div id="stat-completed" class="text-3xl font-extrabold text-slate-900 mt-1">48</div>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <span class="text-xs font-semibold uppercase text-slate-400">Current Queue Length</span>
+                <div id="stat-queue" class="text-3xl font-extrabold text-indigo-600 mt-1">0</div>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <span class="text-xs font-semibold uppercase text-slate-400">System Efficiency</span>
+                <div class="text-3xl font-extrabold text-emerald-600 mt-1">94.2%</div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-slate-900 mb-2">Traffic Simulation Tool</h3>
+            <p class="text-sm text-slate-500 mb-4">Simulate peak hour arrivals to test load balancing.</p>
+            <div class="flex gap-3">
+                <button onclick="simulate(5)" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">Simulate 5 Customers</button>
+                <button onclick="resetSystem()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition">Reset System</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+        QueueFlow Analytics Engine
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        function updateStats() {
+            document.getElementById('stat-completed').innerText = getCompletedCount();
+            document.getElementById('stat-queue').innerText = getQueue().length;
+        }
+
+        function simulate(count) {
+            const queue = getQueue();
+            const services = [
+                { id: 'gen', name: 'General Inquiry', prefix: 'A', avgTime: 3 },
+                { id: 'bill', name: 'Billing', prefix: 'B', avgTime: 4 }
+            ];
+            for(let i=0; i<count; i++) {
+                const s = services[Math.floor(Math.random()*services.length)];
+                queue.push({ id: `${s.prefix}-${queue.length+200}`, serviceName: s.name, avgTime: s.avgTime });
+            }
+            setQueue(queue);
+            updateStats();
+        }
+
+        function resetSystem() {
+            setQueue([]);
+            setCompletedCount(48);
+            updateStats();
+        }
+
+        window.onload = () => {
+            updateStats();
+            setInterval(updateStats, 1000);
+        };
+    </script>
+</body>
+</html>

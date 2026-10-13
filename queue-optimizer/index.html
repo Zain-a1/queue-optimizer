@@ -1,13 +1,181 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>queue-optimizer</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueFlow - Smart Customer Kiosk</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col justify-between">
+
+    <header class="gradient-header text-white shadow-2xl">
+        <div class="max-w-4xl mx-auto px-6 py-5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/20 p-3 rounded-2xl backdrop-blur-md shadow-inner">
+                    <i class="fa-solid fa-layer-group text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight">QueueFlow</h1>
+                    <p class="text-xs text-indigo-100 font-medium">Smart Queue Management Kiosk</p>
+                </div>
+            </div>
+            <a href="staff.html" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs px-4 py-2.5 rounded-xl font-bold backdrop-blur-md transition flex items-center space-x-2 shadow-lg">
+                <i class="fa-solid fa-lock text-indigo-200"></i>
+                <span>Staff Portal</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl w-full mx-auto px-4 py-10 flex-grow">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <div class="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/80 animate-fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-indigo-100 text-indigo-600 p-3 rounded-2xl shadow-sm">
+                        <i class="fa-solid fa-hand-pointer text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-900">Select Service</h2>
+                        <p class="text-xs text-slate-500 font-medium">Tap below to issue your secure token</p>
+                    </div>
+                </div>
+                <div id="service-list" class="space-y-4"></div>
+            </div>
+
+            <div class="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/80 flex flex-col justify-between animate-fade-in">
+                <div>
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="bg-purple-100 text-purple-600 p-3 rounded-2xl shadow-sm">
+                            <i class="fa-solid fa-qrcode text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-extrabold text-slate-900">Live Status</h2>
+                            <p class="text-xs text-slate-500 font-medium">Real-time queue tracking & estimates</p>
+                        </div>
+                    </div>
+                    
+                    <div id="no-token" class="text-center py-20 bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-200">
+                        <i class="fa-solid fa-ticket-simple text-slate-300 text-6xl mb-4 animate-bounce"></i>
+                        <p class="text-slate-700 font-bold text-sm">No Active Token Generated</p>
+                        <p class="text-xs text-slate-400 mt-1">Select a service on the left to get started</p>
+                    </div>
+
+                    <div id="has-token" class="hidden space-y-6">
+                        <div class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white rounded-3xl p-8 text-center shadow-xl glow-card">
+                            <span class="text-[11px] uppercase tracking-widest font-black text-indigo-100 bg-white/20 px-4 py-1.5 rounded-full backdrop-blur-md shadow-sm">Your Token Number</span>
+                            <div id="token-id-display" class="text-7xl font-black tracking-tight my-4 text-white drop-shadow-lg">A-101</div>
+                            <div id="token-service-name" class="text-sm font-bold text-indigo-100">General Inquiry</div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div class="bg-indigo-50/80 p-5 rounded-2xl border border-indigo-100 shadow-sm">
+                                <span class="text-xs text-slate-500 block mb-1 font-bold uppercase tracking-wider">People Ahead</span>
+                                <span id="queue-position" class="text-3xl font-black text-indigo-900">0</span>
+                            </div>
+                            <div class="bg-purple-50/80 p-5 rounded-2xl border border-purple-100 shadow-sm">
+                                <span class="text-xs text-slate-500 block mb-1 font-bold uppercase tracking-wider">Est. Wait</span>
+                                <span id="wait-time" class="text-3xl font-black text-purple-700">0m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="cancel-btn" onclick="cancelToken()" class="hidden w-full mt-6 bg-red-50 text-red-600 font-bold py-3.5 rounded-2xl border border-red-200 hover:bg-red-100 transition text-sm flex items-center justify-center space-x-2 shadow-sm">
+                    <i class="fa-solid fa-circle-xmark text-lg"></i>
+                    <span>Cancel Token</span>
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 py-5 text-center text-xs text-slate-500 font-bold">
+        QueueFlow Kiosk &bull; Hackathon Edition
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        let myTokenId = localStorage.getItem('queueflow_my_token') || null;
+
+        function renderServices() {
+            const container = document.getElementById('service-list');
+            container.innerHTML = DEFAULT_SERVICES.map(s => `
+                <div onclick="generateToken('${s.id}')" class="card-hover p-4 bg-white border border-slate-200/90 rounded-2xl cursor-pointer flex justify-between items-center group shadow-sm">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition shadow-sm text-lg">
+                            <i class="fa-solid fa-ticket"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 group-hover:text-indigo-600 transition text-sm">${s.name}</h3>
+                            <p class="text-xs text-slate-400 font-medium">Avg: ~${s.avgTime} mins</p>
+                        </div>
+                    </div>
+                    <span class="bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white px-4 py-2.5 rounded-xl text-xs font-black transition shadow-sm">
+                        Get Token
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function generateToken(serviceId) {
+            const service = DEFAULT_SERVICES.find(s => s.id === serviceId);
+            const queue = getQueue();
+            const tokenCounter = queue.length + 101;
+            const tokenId = `${service.prefix}-${tokenCounter}`;
+
+            const newToken = { id: tokenId, serviceId, serviceName: service.name, avgTime: service.avgTime };
+            queue.push(newToken);
+            setQueue(queue);
+
+            myTokenId = tokenId;
+            localStorage.setItem('queueflow_my_token', myTokenId);
+            updateUI();
+        }
+
+        function cancelToken() {
+            let queue = getQueue();
+            queue = queue.filter(t => t.id !== myTokenId);
+            setQueue(queue);
+            myTokenId = null;
+            localStorage.removeItem('queueflow_my_token');
+            updateUI();
+        }
+
+        function updateUI() {
+            const queue = getQueue();
+            const noToken = document.getElementById('no-token');
+            const hasToken = document.getElementById('has-token');
+            const cancelBtn = document.getElementById('cancel-btn');
+
+            const tokenObj = queue.find(t => t.id === myTokenId);
+
+            if (!tokenObj) {
+                noToken.classList.remove('hidden');
+                hasToken.classList.add('hidden');
+                cancelBtn.classList.add('hidden');
+                return;
+            }
+
+            noToken.classList.add('hidden');
+            hasToken.classList.remove('hidden');
+            cancelBtn.classList.remove('hidden');
+
+            document.getElementById('token-id-display').innerText = tokenObj.id;
+            document.getElementById('token-service-name').innerText = tokenObj.serviceName;
+
+            const position = queue.indexOf(tokenObj);
+            document.getElementById('queue-position').innerText = position + 1;
+
+            const openCounters = getCounters().filter(c => c.status === 'open').length || 1;
+            const estMins = Math.ceil(((position + 1) * tokenObj.avgTime) / openCounters);
+            document.getElementById('wait-time').innerText = `${estMins}m`;
+        }
+
+        window.onload = () => {
+            renderServices();
+            updateUI();
+            setInterval(updateUI, 1000);
+        };
+    </script>
+</body>
 </html>
